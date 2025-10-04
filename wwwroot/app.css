@@ -105,6 +105,12 @@ h1:focus {
     background: #f3f4f6;
 }
 
+.file-label.dragging {
+    border-color: #1b6ec2;
+    background: #eff6ff;
+    border-style: solid;
+}
+
 .upload-icon {
     width: 3rem;
     height: 3rem;
