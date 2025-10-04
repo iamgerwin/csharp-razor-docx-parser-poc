@@ -6,11 +6,14 @@
 
 ## 🎥 Demo
 
-Watch the application in action:
-
-[![DocX Parser Demo](https://cdn.loom.com/sessions/thumbnails/75a806613fb24c1385534d9352d938c2-with-play.gif)](https://www.loom.com/share/75a806613fb24c1385534d9352d938c2?sid=191cf9ec-9d36-466a-acdc-5c54f79d8867)
-
-**[▶️ Watch Demo Video](https://www.loom.com/share/75a806613fb24c1385534d9352d938c2?sid=191cf9ec-9d36-466a-acdc-5c54f79d8867)** - See how easy it is to parse DOCX files and export to multiple formats!
+<div>
+    <a href="https://www.loom.com/share/75a806613fb24c1385534d9352d938c2">
+      <p>DocX Parser - 4 October 2025 - Watch Video</p>
+    </a>
+    <a href="https://www.loom.com/share/75a806613fb24c1385534d9352d938c2">
+      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/75a806613fb24c1385534d9352d938c2-8c429fde1cc6cafd-full-play.gif">
+    </a>
+  </div>
 
 ---
 
