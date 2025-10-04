@@ -1,0 +1,306 @@
+@page "/"
+@using DocxParserApp.Services
+@using Microsoft.JSInterop
+@rendermode InteractiveServer
+@inject DocxParserService ParserService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>DocX Parser</PageTitle>
+
+<div class="container mx-auto p-8 max-w-4xl">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="text-3xl font-bold">DocX File Parser</h1>
+            <p class="text-gray-600 mt-2">Upload a .docx file to extract and categorize its content</p>
+        </div>
+
+        <div class="card-body">
+            <div class="upload-section">
+                <label for="fileInput" class="file-label">
+                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <span>Choose DOCX File</span>
+                </label>
+                <InputFile id="fileInput" OnChange="HandleFileSelected" accept=".docx" class="hidden-input"/>
+
+                @if (!string.IsNullOrEmpty(fileName))
+                {
+                    <p class="file-name">Selected: @fileName</p>
+                }
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-error">
+                        @errorMessage
+                    </div>
+                }
+            </div>
+
+            @if (isProcessing)
+            {
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing document...</p>
+                </div>
+            }
+
+            @if (parseResult != null)
+            {
+                <div class="result-section">
+                    <div class="format-selector">
+                        <label class="format-label">Output Format:</label>
+                        <div class="btn-group">
+                            <button class="btn @(selectedFormat == OutputFormat.Text ? "btn-primary" : "btn-outline")"
+                                    @onclick="() => selectedFormat = OutputFormat.Text">
+                                Raw Text
+                            </button>
+                            <button class="btn @(selectedFormat == OutputFormat.Categorized ? "btn-primary" : "btn-outline")"
+                                    @onclick="() => selectedFormat = OutputFormat.Categorized">
+                                Categorized
+                            </button>
+                            <button class="btn @(selectedFormat == OutputFormat.Html ? "btn-primary" : "btn-outline")"
+                                    @onclick="() => selectedFormat = OutputFormat.Html">
+                                HTML
+                            </button>
+                            <button class="btn @(selectedFormat == OutputFormat.Json ? "btn-primary" : "btn-outline")"
+                                    @onclick="() => selectedFormat = OutputFormat.Json">
+                                JSON
+                            </button>
+                            <button class="btn @(selectedFormat == OutputFormat.Markdown ? "btn-primary" : "btn-outline")"
+                                    @onclick="() => selectedFormat = OutputFormat.Markdown">
+                                Markdown
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (selectedFormat == OutputFormat.Text)
+                    {
+                        <div class="text-output">
+                            <pre>@parseResult.RawText</pre>
+                        </div>
+                    }
+                    else if (selectedFormat == OutputFormat.Categorized)
+                    {
+                        <div class="categorized-output">
+                            @if (parseResult.Headings.Any())
+                            {
+                                <div class="category-section">
+                                    <h3 class="category-title">Headings (@parseResult.Headings.Count)</h3>
+                                    <div class="category-content">
+                                        @foreach (var heading in parseResult.Headings)
+                                        {
+                                            <div class="heading-item">
+                                                <span class="heading-level">H@heading.Level</span>
+                                                <span class="heading-text">@heading.Text</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            @if (parseResult.Paragraphs.Any())
+                            {
+                                <div class="category-section">
+                                    <h3 class="category-title">Paragraphs (@parseResult.Paragraphs.Count)</h3>
+                                    <div class="category-content">
+                                        @foreach (var para in parseResult.Paragraphs)
+                                        {
+                                            <p class="@(para.IsBold ? "bold" : "") @(para.IsItalic ? "italic" : "")">
+                                                @para.Text
+                                            </p>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            @if (parseResult.Tables.Any())
+                            {
+                                <div class="category-section">
+                                    <h3 class="category-title">Tables (@parseResult.Tables.Count)</h3>
+                                    <div class="category-content">
+                                        @foreach (var (table, index) in parseResult.Tables.Select((t, i) => (t, i)))
+                                        {
+                                            <h4 class="table-number">Table @(index + 1)</h4>
+                                            <table class="data-table">
+                                                @foreach (var (row, rowIndex) in table.Rows.Select((r, i) => (r, i)))
+                                                {
+                                                    <tr>
+                                                        @foreach (var cell in row)
+                                                        {
+                                                            @if (rowIndex == 0)
+                                                            {
+                                                                <th>@cell</th>
+                                                            }
+                                                            else
+                                                            {
+                                                                <td>@cell</td>
+                                                            }
+                                                        }
+                                                    </tr>
+                                                }
+                                            </table>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (selectedFormat == OutputFormat.Html)
+                    {
+                        <div class="text-output">
+                            <pre>@htmlOutput</pre>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" @onclick="CopyToClipboard">Copy HTML</button>
+                            <button class="btn btn-secondary" @onclick="ClearResults">Clear</button>
+                        </div>
+                    }
+                    else if (selectedFormat == OutputFormat.Json)
+                    {
+                        <div class="text-output">
+                            <pre>@jsonOutput</pre>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" @onclick="CopyToClipboard">Copy JSON</button>
+                            <button class="btn btn-secondary" @onclick="ClearResults">Clear</button>
+                        </div>
+                    }
+                    else if (selectedFormat == OutputFormat.Markdown)
+                    {
+                        <div class="text-output">
+                            <pre>@markdownOutput</pre>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" @onclick="CopyToClipboard">Copy Markdown</button>
+                            <button class="btn btn-secondary" @onclick="ClearResults">Clear</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" @onclick="ClearResults">Clear</button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? fileName;
+    private string? errorMessage;
+    private bool isProcessing;
+    private DocxParseResult? parseResult;
+    private OutputFormat selectedFormat = OutputFormat.Text;
+    private string htmlOutput = string.Empty;
+    private string jsonOutput = string.Empty;
+    private string markdownOutput = string.Empty;
+
+    private enum OutputFormat
+    {
+        Text,
+        Categorized,
+        Html,
+        Json,
+        Markdown
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        errorMessage = null;
+        parseResult = null;
+        isProcessing = true;
+
+        try
+        {
+            var file = e.File;
+            fileName = file.Name;
+
+            if (!file.Name.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+            {
+                errorMessage = "Please select a .docx file";
+                return;
+            }
+
+            // Create a temporary file to save the uploaded content
+            var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.docx");
+
+            try
+            {
+                // Save the uploaded file to temp location
+                await using var fileStream = new FileStream(tempPath, FileMode.Create);
+                await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(fileStream);
+                fileStream.Close();
+
+                // Parse the document using DocumentFormat.OpenXml
+                parseResult = ParserService.ParseDocument(tempPath);
+                htmlOutput = ParserService.GenerateHtml(parseResult);
+                jsonOutput = ParserService.GenerateJson(parseResult);
+                markdownOutput = ParserService.GenerateMarkdown(parseResult);
+
+                if (string.IsNullOrWhiteSpace(parseResult.RawText))
+                {
+                    parseResult.RawText = "(Document contains no text)";
+                }
+            }
+            finally
+            {
+                // Clean up temp file
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing file: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ClearResults()
+    {
+        fileName = null;
+        parseResult = null;
+        errorMessage = null;
+        htmlOutput = string.Empty;
+        jsonOutput = string.Empty;
+        markdownOutput = string.Empty;
+        selectedFormat = OutputFormat.Text;
+    }
+
+    private async Task CopyToClipboard()
+    {
+        try
+        {
+            string textToCopy = selectedFormat == OutputFormat.Html ? htmlOutput
+                : selectedFormat == OutputFormat.Json ? jsonOutput
+                : markdownOutput;
+
+            string formatName = selectedFormat == OutputFormat.Html ? "HTML"
+                : selectedFormat == OutputFormat.Json ? "JSON"
+                : "Markdown";
+
+            var success = await JSRuntime.InvokeAsync<bool>("clipboardHelper.copyToClipboard", textToCopy);
+
+            if (success)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", $"{formatName} copied to clipboard!", "success");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Failed to copy to clipboard", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", $"Error: {ex.Message}", "error");
+        }
+    }
+}
