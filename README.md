@@ -4,19 +4,30 @@
 [![Blazor](https://img.shields.io/badge/Blazor-Web-512BD4)](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+## 🎥 Demo
+
+Watch the application in action:
+
+[![DocX Parser Demo](https://cdn.loom.com/sessions/thumbnails/75a806613fb24c1385534d9352d938c2-with-play.gif)](https://www.loom.com/share/75a806613fb24c1385534d9352d938c2?sid=191cf9ec-9d36-466a-acdc-5c54f79d8867)
+
+**[▶️ Watch Demo Video](https://www.loom.com/share/75a806613fb24c1385534d9352d938c2?sid=191cf9ec-9d36-466a-acdc-5c54f79d8867)** - See how easy it is to parse DOCX files and export to multiple formats!
+
+---
+
 A proof of concept Blazor web application that accepts DOCX file uploads and provides intelligent parsing with multiple output formats. Built with .NET 9 and modern web technologies.
 
 ## ✨ Features
 
-- **📄 DOCX File Upload** - Drag & drop or click to upload .docx files (up to 10MB)
+- **📄 DOCX File Upload** - Click to upload .docx files (up to 10MB)
 - **🔍 Intelligent Parsing** - Extract and categorize document content using DocumentFormat.OpenXml
 - **📊 Multiple Output Formats**:
   - **Raw Text** - Simple plain text extraction
   - **Categorized** - Organized view with headings, paragraphs, and tables
   - **HTML** - Full HTML conversion with styling
   - **JSON** - Structured JSON output for programmatic use
+  - **Markdown** - Formatted Markdown output with proper syntax
 - **🎨 Modern UI** - shadcn-inspired design with clean, responsive interface
-- **📋 Clipboard Support** - Copy HTML/JSON output with visual feedback
+- **📋 Clipboard Support** - Copy HTML/JSON/Markdown output with visual feedback
 - **⚡ Real-time Processing** - Fast client-side processing with loading states
 - **🔒 Secure** - Temporary file handling with automatic cleanup
 
