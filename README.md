@@ -234,6 +234,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Tests require additional configuration due to project structure
 - Large files (>10MB) may cause performance issues
 - Complex DOCX formatting may not be fully preserved
+- Drag-and-drop file upload not supported (Blazor limitation)
 
 ## 🗺️ Roadmap
 
